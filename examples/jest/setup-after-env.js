@@ -1,0 +1,1 @@
+require("../../reporters/jest/jest").setup(beforeAll, afterEach, afterAll);
