@@ -1,0 +1,51 @@
+name: Run tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopend
+      - synchronize
+    branches:
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  scheduled:
+    runs-on: ubuntu-latest
+    env:
+      CACHE_NAME: cache-node-modules
+      NODE_OPTIONS: --max_old_space_size=4096
+    timeout-minutes: 5
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.CACHE_NAME }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Get node version
+        run: node --version
+      - name: Install dependencies
+        id: install-deps
+        run: yarn install
+      - name: Run tests & publish code coverage to code climate
+        id: run-tests
+        uses: paambaati/codeclimate-action@v3.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: yarn test:reporter:jest
+          coverageLocations: ${{github.workspace}}/coverage/lcov.info:lcov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          directory: ${{github.workspace}}/coverage/
