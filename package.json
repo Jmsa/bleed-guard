@@ -22,17 +22,23 @@
   "scripts": {
     "test:reporter:jest": "yarn jest ./reporters/jest/jest.spec.js",
     "test:example:jest": "yarn jest ./examples/jest/*.spec.js -c ./examples/jest/jest.config.js",
+    "test:reporter:vitest": "yarn vitest ./reporters/vitest/vitest.spec.ts",
+    "test:example:vitest": "yarn vitest ./examples/vitest/*.spec.js -c ./examples/vitest/vitest.config.js",
     "release": "standard-version"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
+    "@testing-library/svelte": "^5.2.1",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jquery": "^3.7.1",
-    "mock-fs": "^5.2.0"
+    "jsdom": "^25.0.1",
+    "mock-fs": "^5.2.0",
+    "vitest": "^2.1.1"
   },
   "dependencies": {
     "chalk": "4.1.2",

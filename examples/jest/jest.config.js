@@ -11,7 +11,7 @@ module.exports = async () => {
         setupFilesAfterEnv: ['./setup-after-env.js'],
         reporters: [
             "default",
-            ['../../reporters/jest/jest.js', {domCheck: true, globalWindowCheck: true, logLevel: "info", shouldThrow: false}]
+            ['../../reporters/jest/jest.js', {domCheck: true, globalWindowCheck: true, logLevel: logLevel.info, shouldThrow: false}]
           ]
     };
 };
