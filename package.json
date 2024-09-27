@@ -17,7 +17,8 @@
   "files": [
     "README.md",
     "LICENSE",
-    "reporters/jest/jest.js"
+    "reporters/jest/jest.js",
+    "utils/detection.js"
   ],
   "scripts": {
     "test:reporter:jest": "yarn jest ./reporters/jest/jest.spec.ts",
