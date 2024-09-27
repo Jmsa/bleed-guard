@@ -4,9 +4,8 @@
 const chalk = require('chalk');
 chalk.level = 0;
 
-const BleedReporter = require('./jest');
-const logLevel = require('./jest').logLevel
-const filePaths = require('./jest').filePaths
+import BleedReporter from './jest';
+import {filePaths,} from "../../utils/detection"
 const mock = require("mock-fs");
 const fs = require("fs");
 
@@ -18,7 +17,7 @@ describe('BleedReporter', () => {
   });
 
   it("stores the reporter options for later use in setup", () => {
-    new BleedReporter();
+    new BleedReporter(null, {});
     expect(fs.readdirSync("./")).toContain(filePaths.reporterOptions.replace("./", ""));
   })
 
@@ -29,7 +28,7 @@ describe('BleedReporter', () => {
         [filePaths.testBleed]: "{}"
       });
 
-      const reporter = new BleedReporter({}, { logLevel: 5 });
+      const reporter = new BleedReporter({}, { logLevel: undefined });
       expect(() => reporter.onRunStart()).toThrow("[BleedGuard]: Invalid logLevel provided!");
     });
   });
@@ -40,7 +39,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: "{}"
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.none });
+      const reporter = new BleedReporter({}, { logLevel: "none" });
       reporter.onRunStart();
       expect(consoleSpy).toHaveBeenCalledTimes(0);
     });
@@ -50,7 +49,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify(testBleedResults),
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.none });
+      const reporter = new BleedReporter({}, { logLevel: "none" });
       reporter.onRunStart();
       expect(consoleSpy).toHaveBeenCalledTimes(0);
     });
@@ -62,7 +61,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: "{}"
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.info });
+      const reporter = new BleedReporter({}, { logLevel: "info" });
       reporter.onRunStart();
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith(`[BleedGuard]: Jest Bleed Reporter running...`);
@@ -72,7 +71,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify({ dom: testBleedResults.dom }, null, 4)
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.info });
+      const reporter = new BleedReporter({}, { logLevel: "info" });
       reporter.onRunComplete();
       expect(consoleSpy).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenNthCalledWith(1, `[BleedGuard]: DOM bleed detected!`);
@@ -84,7 +83,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify({ window: testBleedResults.window }, null, 4)
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.info });
+      const reporter = new BleedReporter({}, { logLevel: "info" });
       reporter.onRunComplete();
       expect(consoleSpy).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenNthCalledWith(1, `[BleedGuard]: Window bleed detected!`);
@@ -98,7 +97,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: "{}"
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.verbose });
+      const reporter = new BleedReporter({}, { logLevel: "verbose" });
       reporter.onRunStart();
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith(`[BleedGuard]: Jest Bleed Reporter running...`, { options: { domCheck: true, globalWindowCheck: true, logLevel: "verbose", shouldThrow: false } });
@@ -108,7 +107,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify({ dom: testBleedResults.dom }, null, 4)
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.verbose });
+      const reporter = new BleedReporter({}, { logLevel: "verbose" });
       reporter.onRunComplete();
       expect(consoleSpy).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenNthCalledWith(1, `[BleedGuard]: DOM bleed detected!`);
@@ -120,7 +119,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify({ window: testBleedResults.window }, null, 4)
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.verbose });
+      const reporter = new BleedReporter({}, { logLevel: "verbose" });
       reporter.onRunComplete();
       expect(consoleSpy).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenNthCalledWith(1, `[BleedGuard]: Window bleed detected!`);
@@ -134,7 +133,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify({ dom: testBleedResults.dom }, null, 4)
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.info, shouldThrow: true });
+      const reporter = new BleedReporter({}, { logLevel: "info", shouldThrow: true });
       expect(() => reporter.onRunComplete()).toThrow("[BleedGuard]: Test bleed detected!!! See output for details.")
     });
     it("and there is window bleed", () => {
@@ -142,7 +141,7 @@ describe('BleedReporter', () => {
       mock({
         [filePaths.testBleed]: JSON.stringify({ window: testBleedResults.window }, null, 4)
       });
-      const reporter = new BleedReporter({}, { logLevel: logLevel.info, shouldThrow: true });
+      const reporter = new BleedReporter({}, { logLevel: "info", shouldThrow: true });
       expect(() => reporter.onRunComplete()).toThrow("[BleedGuard]: Test bleed detected!!! See output for details.")
     });
   });
