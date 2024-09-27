@@ -20,7 +20,7 @@
     "reporters/jest/jest.js"
   ],
   "scripts": {
-    "test:reporter:jest": "yarn jest ./reporters/jest/jest.spec.js",
+    "test:reporter:jest": "yarn jest ./reporters/jest/jest.spec.*",
     "test:example:jest": "yarn jest ./examples/jest/*.spec.js -c ./examples/jest/jest.config.js",
     "release": "standard-version"
   },
@@ -28,11 +28,14 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
+    "@types/jest": "29.5.13",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jquery": "^3.7.1",
-    "mock-fs": "^5.2.0"
+    "mock-fs": "^5.2.0",
+    "ts-jest": "29.2.5",
+    "typescript": "5.6.2"
   },
   "dependencies": {
     "chalk": "4.1.2",
