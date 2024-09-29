@@ -3,6 +3,7 @@ node_modules/
 # Generated files
 reporters/*.js
 detection.js
+*.spec.js
 
 # Testing and run time files
 coverage/

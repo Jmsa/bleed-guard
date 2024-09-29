@@ -5,7 +5,6 @@ const { diff } = require("deep-object-diff");
 // Make sure we can print the entire object to the console
 require("util").inspect.defaultOptions.depth = null;
 
-// TODO: make these options?
 export const filePaths = {
   testBleed: "./bleed-guard-test-bleed.json",
   reporterOptions: "./bleed-guard-reporter-options.json",
@@ -22,6 +21,13 @@ export interface DetectionOptions {
   logLevel?: LogLevel;
   shouldThrow?: boolean;
 }
+
+export const defaultOptions: DetectionOptions = {
+  domCheck: true,
+  globalWindowCheck: true,
+  logLevel: "info",
+  shouldThrow: false,
+};
 
 export const detectBleed = (options: DetectionOptions) => {
   const bleed = JSON.parse(fs.readFileSync(filePaths.testBleed).toString());
@@ -158,3 +164,20 @@ export const storeOptions = (options: DetectionOptions) => {
   // Store the reporter options so that setup() will have access to them later
   fs.writeFileSync(filePaths.reporterOptions, JSON.stringify(options));
 };
+
+export const logStart = (options: DetectionOptions) => {
+  switch (options.logLevel) {
+    case "info":
+      console.log(`${packageName} Jest Bleed Reporter running...`);
+      break;
+    case "verbose":
+      console.log(`${packageName} Jest Bleed Reporter running...`, { options });
+      break;
+    case "none":
+      // Do nothing, nothing should be logged
+      break;
+    default:
+      throw new Error(`${packageName} Invalid logLevel provided!`);
+  }
+};
+ 
