@@ -21,7 +21,9 @@
     "detection.js"
   ],
   "scripts": {
-    "test:reporter:jest": "yarn jest ./reporters/jest/jest.spec.*",
+    "test:reporters": "yarn jest",
+    "test:detection": "yarn jest ./detection.spec.ts",
+    "test:examples": "yarn test:example:jest",
     "test:example:jest": "yarn tsc && yarn jest ./examples/jest/*.spec.js -c ./examples/jest/jest.config.js",
     "release": "yarn tsc && standard-version"
   },
