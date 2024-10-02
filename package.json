@@ -18,11 +18,11 @@
     "README.md",
     "LICENSE",
     "reporters/jest/jest.js",
+    "reporters/vitest/vitest.js",
     "detection.js"
   ],
   "scripts": {
     "test:reporters": "yarn jest",
-    "test:detection": "yarn jest ./detection.spec.ts",
     "test:examples": "yarn test:example:jest",
     "test:example:jest": "yarn tsc && yarn jest ./examples/jest/*.spec.js -c ./examples/jest/jest.config.js",
     "release": "yarn tsc && standard-version"
@@ -38,7 +38,8 @@
     "jquery": "^3.7.1",
     "mock-fs": "^5.2.0",
     "ts-jest": "29.2.5",
-    "typescript": "5.6.2"
+    "typescript": "5.6.2",
+    "vitest": "2.1.2"
   },
   "dependencies": {
     "chalk": "4.1.2",
