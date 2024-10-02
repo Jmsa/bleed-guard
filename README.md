@@ -13,14 +13,13 @@
 - **Framework Support**  
   Bleed Guard supports popular testing frameworks like:
   - [Jest](https://jestjs.io/)
-- **Frameworks in progress** (aka coming soon)
-  - [Vite](https://vitejs.dev/)
+  - [Vitest](https://vitest.dev/)
   
 - **Issue Tracking**  
   Each reporter can track and report the following issues:
   - **DOM Cleanup**: Detects if any DOM elements were left behind after tests run.
   - **Global State Changes**: Ensures no changes persist in the global `window` object that might bleed into subsequent tests.
-  - **Incomplete Network Requests**: Identifies if there are any ongoing or incomplete network requests when a test completes.
+  - **(WIP) Incomplete Network Requests**: Identifies if there are any ongoing or incomplete network requests when a test completes.
 
 ## Installation
 
@@ -47,54 +46,54 @@ module.exports = {
       shouldThrow: false
     }]
   ],
+  setupFilesAfterEnv: ["./examples/jest/setup"] // Your setup file which will call the setup() from the reporter
 };
 ```
 
 Then in a test setup file where you have access to the environment before tests start running, usually provided via `setupFilesAfterEnv`:
 
 ```js
-require("./jest-bleed-reporter").setup(beforeAll, afterEach, afterAll);
+require("bleed-guard/reporters/jest/jest").setup(beforeAll, afterEach, afterAll);
 ```
 
-### Vite
+An example of this setup can be seen in [`examples/jest`](https://github.com/Jmsa/bleed-guard/tree/main/examples/);
 
-In your `vite.config.js`:
+### Vitest
+
+In your `vitest.config.js`:
 
 ```js
-import { defineConfig } from 'vite';
-import bleedGuardReporter from 'bleed-guard/vite';
+import { defineConfig } from 'vitest/config';
+import BleedReporter from './../../reporters/vitest/vitest';
 
 export default defineConfig({
   test: {
-    environment: 'jsdom',   // A browser-like environment is required if you want to enable dom checking
-    reporters: [
-      'default', 
-      ['bleed-guard/vite', {
-        domCheck: true,
-        globalWindowCheck: true,
-        shouldThrow: false
-      }]
-    ],
+    environment: "jsdom", // A browser-like environment is required if you want to enable dom checking
+    reporters: ['default', new BleedReporter()],
+    setupFiles: ["./examples/vitest/setup"] // Your setup file which will call the setup() from the reporter
   },
-});
+})
 ```
 
 Then in a test setup file where you have access to the environment before tests start running:
 
 ```js
-require("./vite-bleed-reporter").setup(beforeAll, afterEach, afterAll);
+require("bleed-guard/reporters/vitest/vitest").setup(beforeAll, afterEach, afterAll);
 ```
+
+An example of this setup can be seen in [`examples/vitest`](https://github.com/Jmsa/bleed-guard/tree/main/examples/);
 
 ## Reporter Options
 
-Each reporter comes with customizable options to fit your testing setup. For example:
+Each reporter is a wrapper around more generic detection options you can customize to fit your testing setup. For example:
 
-```json
-{
-  "domCheck": true,
-  "globalWindowCheck": true,
-  "shouldThrow": false,
-  "logLevel": 1
+```typescript
+interface DetectionOptions {
+  domCheck?: boolean;
+  globalWindowCheck?: boolean;
+  shouldThrow?: boolean;
+  logLevel?: LogLevel;  // "none" | "info" | "verbose"
+  library?: "Jest" | "Vitest";
 }
 ```
 
@@ -104,6 +103,7 @@ Each reporter comes with customizable options to fit your testing setup. For exa
 | globalWindowCheck | true | Monitors changes in the global window object |
 | shouldThrow | false | Will throw an error if any bleed is detected. |
 | logLevel | "info" | Determines how much output will be logged to the console from the reporter. |
+| Library | "" | Used to include the reporter name while logging. |
 
 ## Contributing
 
