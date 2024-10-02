@@ -23,8 +23,9 @@
   ],
   "scripts": {
     "test:reporters": "yarn jest",
-    "test:examples": "yarn test:example:jest",
+    "test:examples": "yarn test:example:jest && yarn test:example:vitest",
     "test:example:jest": "yarn tsc && yarn jest ./examples/jest/*.spec.js -c ./examples/jest/jest.config.js",
+    "test:example:vitest": "yarn tsc && yarn vitest ./examples/vitest/*.spec.js -c ./examples/vitest/vitest.config.js --run",
     "release": "yarn tsc && standard-version"
   },
   "devDependencies": {
