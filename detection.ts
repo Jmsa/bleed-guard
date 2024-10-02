@@ -20,6 +20,7 @@ export interface DetectionOptions {
   globalWindowCheck?: boolean;
   logLevel?: LogLevel;
   shouldThrow?: boolean;
+  library?: "Jest" | "Vitest";
 }
 
 export const defaultOptions: DetectionOptions = {
@@ -168,10 +169,10 @@ export const storeOptions = (options: DetectionOptions) => {
 export const logStart = (options: DetectionOptions) => {
   switch (options.logLevel) {
     case "info":
-      console.log(`${packageName} Jest Bleed Reporter running...`);
+      console.log(`${packageName} ${options.library} Bleed Reporter running...`);
       break;
     case "verbose":
-      console.log(`${packageName} Jest Bleed Reporter running...`, { options });
+      console.log(`${packageName} ${options.library} Bleed Reporter running...`, { options });
       break;
     case "none":
       // Do nothing, nothing should be logged
