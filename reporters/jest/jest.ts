@@ -8,6 +8,7 @@ export default class BleedReporter {
 
         // Store options
         this.options = {
+            library: "Jest",
             ...defaultOptions,
             ...options
         };
