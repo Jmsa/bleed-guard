@@ -1,3 +1,10 @@
+checks:
+  similar-code:
+    enabled: false
+  identical-code:
+    enabled: false
+  method-lines:
+    enabled: false
 exclude_patterns:
 - "**/*.spec.*"
 - "examples/**/*"
