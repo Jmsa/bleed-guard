@@ -8,7 +8,13 @@ chalk.level = 0;
 jest.mock("fs");
 import { vol } from "memfs";
 
-import { filePaths, storeOptions, detectBleed, setup, logStart } from "./detection";
+import {
+  filePaths,
+  storeOptions,
+  detectBleed,
+  setup,
+  logStart,
+} from "./detection";
 const fs = require("fs");
 
 describe("detection", () => {
@@ -27,6 +33,53 @@ describe("detection", () => {
 
     storeOptions({});
     expect(fs.readdirSync("./temp")).toContain(filePaths.reporterOptions);
+  });
+
+  it("logStart logs nothing when logLevel: none", () => {
+    const consoleSpy = jest.spyOn(console, "log");
+    logStart({ logLevel: "none" });
+    expect(consoleSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("logStart logs the start message when logLevel: info", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    logStart({ logLevel: "info" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[BleedGuard]: Bleed Reporter running..."
+    );
+  });
+
+  it("logStart logs the start message and options when logLevel: verbose", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    logStart({ logLevel: "verbose" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[BleedGuard]: Bleed Reporter running...",
+      { options: { logLevel: "verbose" } }
+    );
+  });
+
+  it("logStart logs the start message without library details if one provided", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    logStart({ logLevel: "info", library: "Jest" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[BleedGuard]: Jest Bleed Reporter running..."
+    );
+  });
+
+  it("logStart throws when an invalid logLevel provided", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    expect(() => logStart({ logLevel: "adaaf" as "info" })).toThrow(
+      "[BleedGuard]: Invalid logLevel provided!"
+    );
+    expect(consoleSpy).toHaveBeenCalledTimes(0);
   });
 
   describe("logLevel: none", () => {
