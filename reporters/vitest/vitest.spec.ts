@@ -4,7 +4,7 @@
 const chalk = require("chalk");
 chalk.level = 0;
 
-import BleedReporter from "./jest";
+import BleedReporter from "./vitest";
 import * as detection from "../../detection";
 
 jest.mock("../../detection", () => ({
@@ -13,7 +13,7 @@ jest.mock("../../detection", () => ({
   detectBleed: jest.fn()
 }))
 
-describe("BleedReporter: Jest", () => {
+describe("BleedReporter: Vitest", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -23,15 +23,15 @@ describe("BleedReporter: Jest", () => {
     expect(detection.storeOptions).toHaveBeenCalledTimes(1);
   });
 
-  it("onRunStart calls logStart", () => {
+  it("onInit calls logStart", () => {
     const reporter = new BleedReporter({}, { logLevel: undefined });
-    reporter.onRunStart();
+    reporter.onInit();
     expect(detection.logStart).toHaveBeenCalledTimes(1);
   });
 
-  it("onRunComplete calls detectBleed", () => {
+  it("onFinished calls detectBleed", () => {
     const reporter = new BleedReporter({}, {});
-    reporter.onRunComplete();
+    reporter.onFinished();
     expect(detection.detectBleed).toHaveBeenCalledTimes(1)
   });
 });

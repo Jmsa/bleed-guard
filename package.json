@@ -1,6 +1,6 @@
 {
   "name": "bleed-guard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A collection of test reporters dedicated ot helping track, and stop, test bleed.",
   "repository": "https://github.com/Jmsa/bleed-guard.git",
   "author": "James Abercrombie <jmsabercrombie88@gmail.com>",
@@ -18,14 +18,15 @@
     "README.md",
     "LICENSE",
     "reporters/jest/jest.js",
+    "reporters/vitest/vitest.js",
     "detection.js"
   ],
   "scripts": {
     "test:reporters": "yarn jest",
-    "test:detection": "yarn jest ./detection.spec.ts",
-    "test:examples": "yarn test:example:jest",
+    "test:examples": "yarn test:example:jest && yarn test:example:vitest",
     "test:example:jest": "yarn tsc && yarn jest ./examples/jest/*.spec.js -c ./examples/jest/jest.config.js",
-    "release": "yarn tsc && standard-version"
+    "test:example:vitest": "yarn tsc && yarn vitest ./examples/vitest/*.spec.js -c ./examples/vitest/vitest.config.js --run",
+    "release": "yarn tsc && yarn standard-version"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
@@ -36,9 +37,11 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jquery": "^3.7.1",
-    "mock-fs": "^5.2.0",
+    "memfs": "4.12.0",
+    "standard-version": "9.5.0",
     "ts-jest": "29.2.5",
-    "typescript": "5.6.2"
+    "typescript": "5.6.2",
+    "vitest": "2.1.2"
   },
   "dependencies": {
     "chalk": "4.1.2",

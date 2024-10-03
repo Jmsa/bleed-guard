@@ -4,38 +4,107 @@
 const chalk = require("chalk");
 chalk.level = 0;
 
-import { filePaths, storeOptions, detectBleed, setup } from "./detection";
-const mock = require("mock-fs");
+// Mock the fs to prevent real file being left behind during test runs
+jest.mock("fs");
+import { vol } from "memfs";
+
+import {
+  filePaths,
+  storeOptions,
+  detectBleed,
+  setup,
+  logStart,
+} from "./detection";
 const fs = require("fs");
 
 describe("detection", () => {
   afterEach(() => {
     jest.clearAllMocks();
-    mock.restore();
+    vol.reset();
+  });
+
+  it("storeOptions creates the folder it needs to store the option in if it doesn't exist", () => {
+    storeOptions({});
+    expect(fs.readdirSync("./")).toContain("temp");
   });
 
   it("storeOptions stores the reporter options for later use in setup", () => {
+    vol.mkdirSync("./temp", { recursive: true });
+
     storeOptions({});
-    expect(fs.readdirSync("./")).toContain(
-      filePaths.reporterOptions.replace("./", "")
+    expect(fs.readdirSync("./temp")).toContain(filePaths.reporterOptions);
+  });
+
+  it("logStart logs nothing when logLevel: none", () => {
+    const consoleSpy = jest.spyOn(console, "log");
+    logStart({ logLevel: "none" });
+    expect(consoleSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("logStart logs the start message when logLevel: info", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    logStart({ logLevel: "info" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[BleedGuard]: Bleed Reporter running..."
     );
+  });
+
+  it("logStart logs the start message and options when logLevel: verbose", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    logStart({ logLevel: "verbose" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[BleedGuard]: Bleed Reporter running...",
+      { options: { logLevel: "verbose" } }
+    );
+  });
+
+  it("logStart logs the start message without library details if one provided", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    logStart({ logLevel: "info", library: "Jest" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[BleedGuard]: Jest Bleed Reporter running..."
+    );
+  });
+
+  it("logStart throws when an invalid logLevel provided", () => {
+    const consoleSpy = jest
+      .spyOn(console, "log")
+      .mockImplementationOnce(() => {});
+    expect(() => logStart({ logLevel: "adaaf" as "info" })).toThrow(
+      "[BleedGuard]: Invalid logLevel provided!"
+    );
+    expect(consoleSpy).toHaveBeenCalledTimes(0);
   });
 
   describe("logLevel: none", () => {
     it("logs nothing when there is no bleed", () => {
       const consoleSpy = jest.spyOn(console, "log");
-      mock({
-        [filePaths.testBleed]: "{}",
-      });
+      vol.fromJSON(
+        {
+          [filePaths.testBleed]: "{}",
+        },
+        "./"
+      );
+
       detectBleed({ logLevel: "none" });
       expect(consoleSpy).toHaveBeenCalledTimes(0);
     });
 
     it("logs nothing even when there is bleed", () => {
       const consoleSpy = jest.spyOn(console, "log");
-      mock({
-        [filePaths.testBleed]: JSON.stringify(testBleedResults),
-      });
+      vol.fromJSON(
+        {
+          [filePaths.testBleed]: JSON.stringify(testBleedResults),
+        },
+        "./"
+      );
+
       detectBleed({ logLevel: "none" });
       expect(consoleSpy).toHaveBeenCalledTimes(0);
     });
@@ -46,7 +115,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: "{}",
       });
       detectBleed({ logLevel: "info" });
@@ -59,7 +128,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { dom: testBleedResults.dom },
           null,
@@ -82,7 +151,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { window: testBleedResults.window },
           null,
@@ -107,7 +176,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { dom: testBleedResults.dom },
           null,
@@ -127,7 +196,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { window: testBleedResults.window },
           null,
@@ -149,7 +218,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { dom: testBleedResults.dom },
           null,
@@ -164,7 +233,7 @@ describe("detection", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
         .mockImplementation(() => {});
-      mock({
+      vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { window: testBleedResults.window },
           null,
@@ -181,13 +250,13 @@ describe("detection", () => {
 describe("setup()", () => {
   afterEach(() => {
     jest.clearAllMocks();
-    mock.restore();
+    vol.reset();
   });
 
   it("calls the expected before hooks", async () => {
-    const beforeAll = jest.fn(async (fn) => fn());
-    const afterEach = jest.fn(async (fn) => fn());
-    const afterAll = jest.fn(async (fn) => fn());
+    const beforeAll = jest.fn(async (fn) => {});
+    const afterEach = jest.fn(async (fn) => {});
+    const afterAll = jest.fn(async (fn) => {});
     setup(beforeAll, afterEach, afterAll);
     expect(beforeAll).toHaveBeenCalledTimes(1);
   });
