@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const chalk = require("chalk");
 const { diff } = require("deep-object-diff");
 
@@ -7,7 +8,8 @@ require("util").inspect.defaultOptions.depth = null;
 
 export const filePaths = {
   testBleed: "./bleed-guard-test-bleed.json",
-  reporterOptions: "./bleed-guard-reporter-options.json",
+  reporterOptions: "bleed-guard-reporter-options.json",
+  tempDir: "./temp",
 };
 
 export const packageName = chalk.bold.yellow("[BleedGuard]:");
@@ -20,7 +22,7 @@ export interface DetectionOptions {
   globalWindowCheck?: boolean;
   logLevel?: LogLevel;
   shouldThrow?: boolean;
-  library?: "Jest" | "Vitest";
+  library?: "Jest" | "Vitest" | "";
 }
 
 export const defaultOptions: DetectionOptions = {
@@ -28,10 +30,13 @@ export const defaultOptions: DetectionOptions = {
   globalWindowCheck: true,
   logLevel: "info",
   shouldThrow: false,
+  library: "",
 };
 
 export const detectBleed = (options: DetectionOptions) => {
-  const bleed = JSON.parse(fs.readFileSync(filePaths.testBleed).toString());
+  const file = fs.readFileSync(filePaths.testBleed);
+  let bleed = {} as Bleed;
+  bleed = JSON.parse(file.toString());
   const domLeaks = checkForDOMLeaks(bleed);
   const windowLeaks = checkForWindowLeaks(bleed);
 
@@ -131,9 +136,8 @@ export const setup = (beforeAll, afterEach, afterAll) => {
   beforeAll(async () => {
     // Wipe the tracking file so there is a clean slate and grab the options
     fs.writeFileSync(filePaths.testBleed, JSON.stringify(bleed, null, 4));
-    const options = JSON.parse(
-      fs.readFileSync(filePaths.reporterOptions).toString()
-    );
+    const location = path.join(filePaths.tempDir, filePaths.reporterOptions);
+    const options = JSON.parse(fs.readFileSync(location).toString());
 
     // Enable different trackers based on options
     if (options.domCheck) domCheck();
@@ -153,32 +157,33 @@ export const setup = (beforeAll, afterEach, afterAll) => {
   });
 };
 
-// Misc clean up
-const teardown = () => {
-  fs.stat(filePaths.testBleed, () => fs.rmSync(filePaths.testBleed));
-  fs.stat(filePaths.reporterOptions, () =>
-    fs.rmSync(filePaths.reporterOptions)
-  );
-};
-
-export const storeOptions = (options: DetectionOptions) => {
+export const storeOptions = async (options: DetectionOptions) => {
   // Store the reporter options so that setup() will have access to them later
-  fs.writeFileSync(filePaths.reporterOptions, JSON.stringify(options));
+  // Since these are meant to be temporary, and only important during the lifespan of the reporter,
+  // they can be stored in the "temp" directory
+  if (!fs.existsSync(filePaths.tempDir)) {
+    await fs.mkdirSync(filePaths.tempDir, { recursive: true });
+  }
+
+  const location = path.join(filePaths.tempDir, filePaths.reporterOptions);
+  await fs.writeFileSync(location, JSON.stringify(options));
 };
 
 export const logStart = (options: DetectionOptions) => {
+  const reporterName = options.library
+    ? `${packageName} ${options.library}`
+    : packageName;
   switch (options.logLevel) {
     case "info":
-      console.log(`${packageName} ${options.library} Bleed Reporter running...`);
+      console.log(`${reporterName} Bleed Reporter running...`);
       break;
     case "verbose":
-      console.log(`${packageName} ${options.library} Bleed Reporter running...`, { options });
+      console.log(`${reporterName} Bleed Reporter running...`, { options });
       break;
     case "none":
       // Do nothing, nothing should be logged
       break;
     default:
-      throw new Error(`${packageName} Invalid logLevel provided!`);
+      throw new Error(`${reporterName} Invalid logLevel provided!`);
   }
 };
- 
