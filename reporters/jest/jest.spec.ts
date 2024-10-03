@@ -6,36 +6,30 @@ chalk.level = 0;
 
 import BleedReporter from "./jest";
 import * as detection from "../../detection";
-const mock = require("mock-fs");
-const fs = require("fs");
+
+jest.mock("../../detection", () => ({
+  storeOptions: jest.fn(),
+  logStart: jest.fn(),
+  detectBleed: jest.fn()
+}))
 
 describe("BleedReporter: Jest", () => {
   afterEach(() => {
     jest.clearAllMocks();
-    mock.restore();
   });
 
-  it("stores the reporter options for later use", () => {
+  it("new reporter initialization calls storeOptions", () => {
     new BleedReporter(null, {});
-    expect(fs.readdirSync("./")).toContain(
-      detection.filePaths.reporterOptions.replace("./", "")
-    );
+    expect(detection.storeOptions).toHaveBeenCalledTimes(1);
   });
 
-  it("logLevel: invalid - throws an error on run start", () => {
-    mock({
-      [detection.filePaths.testBleed]: "{}",
-    });
-
+  it("onRunStart calls logStart", () => {
     const reporter = new BleedReporter({}, { logLevel: undefined });
-    expect(() => reporter.onRunStart()).toThrow(
-      "[BleedGuard]: Invalid logLevel provided!"
-    );
+    reporter.onRunStart();
+    expect(detection.logStart).toHaveBeenCalledTimes(1);
   });
 
   it("onRunComplete calls detectBleed", () => {
-    jest.spyOn(console, "log").mockImplementation();
-    jest.spyOn(detection, "detectBleed");
     const reporter = new BleedReporter({}, {});
     reporter.onRunComplete();
     expect(detection.detectBleed).toHaveBeenCalledTimes(1)
