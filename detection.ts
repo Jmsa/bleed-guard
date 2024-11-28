@@ -20,6 +20,7 @@ export type LogLevel = "none" | "info" | "verbose";
 export interface DetectionOptions {
   domCheck?: boolean;
   globalWindowCheck?: boolean;
+  networkCheck?: boolean;
   logLevel?: LogLevel;
   shouldThrow?: boolean;
   library?: "Jest" | "Vitest" | "";
@@ -28,6 +29,7 @@ export interface DetectionOptions {
 export const defaultOptions: DetectionOptions = {
   domCheck: true,
   globalWindowCheck: true,
+  networkCheck: true,
   logLevel: "info",
   shouldThrow: false,
   library: "",
@@ -39,12 +41,15 @@ export const detectBleed = (options: DetectionOptions) => {
   bleed = JSON.parse(file.toString());
   const domLeaks = checkForDOMLeaks(bleed);
   const windowLeaks = checkForWindowLeaks(bleed);
+  const networkLeaks = checkForNetworkLeaks(bleed);
 
   // Log results based on various possible issues and logging levels
   switch (options.logLevel) {
     case "info":
       if (domLeaks) console.log(`${packageName} DOM bleed detected!`);
       if (windowLeaks) console.log(`${packageName} Window bleed detected!`);
+      if (networkLeaks)
+        console.log(`${packageName} Network requests still pending!`);
       console.log(
         `${packageName} See the temp output (${chalk.underline.yellow(
           filePaths.testBleed
@@ -60,13 +65,17 @@ export const detectBleed = (options: DetectionOptions) => {
         console.log(`${packageName} Window bleed detected!`);
         console.log(bleed.window);
       }
+      if (networkLeaks) {
+        console.log(`${packageName} Network requests still pending!`);
+        console.log(bleed.network);
+      }
       break;
     case "none":
     default:
       break;
   }
 
-  if (options.shouldThrow && (domLeaks || windowLeaks)) {
+  if (options.shouldThrow && (domLeaks || windowLeaks || networkLeaks)) {
     throw new Error(
       `${packageName} Test bleed detected!!! See output for details.`
     );
@@ -76,6 +85,7 @@ export const detectBleed = (options: DetectionOptions) => {
 export interface Bleed {
   dom: any[];
   window: any[];
+  network: any[];
 }
 
 const checkForDOMLeaks = (bleed: Bleed) => {
@@ -85,6 +95,11 @@ const checkForDOMLeaks = (bleed: Bleed) => {
 
 const checkForWindowLeaks = (bleed: Bleed) => {
   if (bleed?.window?.length > 0) return true;
+  return false;
+};
+
+const checkForNetworkLeaks = (bleed: Bleed) => {
+  if (bleed?.network?.length > 0) return true;
   return false;
 };
 
@@ -99,9 +114,11 @@ export const setup = (beforeAll, afterEach, afterAll) => {
   const bleed: {
     dom: any[];
     window: any[];
+    network: any[];
   } = {
     dom: [],
     window: [],
+    network: [],
   };
 
   // Track changes to the dom by comparing the original html to the finished set
@@ -133,6 +150,51 @@ export const setup = (beforeAll, afterEach, afterAll) => {
     });
   };
 
+  // Track any open XMLHttpRequests or fetch requests
+  const networkCheck = () => {
+    const originalXHR = window.XMLHttpRequest;
+    const originalFetch = window.fetch;
+    const activeRequests = new Set();
+
+    // Track XHR requests
+    window.XMLHttpRequest = function () {
+      const xhr = new originalXHR();
+      const send = xhr.send;
+      xhr.send = function (...args) {
+        activeRequests.add(xhr);
+        xhr.addEventListener("loadend", () => {
+          activeRequests.delete(xhr);
+        });
+        return send.apply(xhr, args);
+      };
+      return xhr;
+    } as any;
+
+    // Track fetch requests
+    window.fetch = function (...args) {
+      const promise = originalFetch.apply(window, args);
+      activeRequests.add(promise);
+      promise.finally(() => {
+        activeRequests.delete(promise);
+      });
+      return promise;
+    } as any;
+
+    // TODO: sanity check the way packages like axios work
+
+    cleanUp.push(() => {
+      if (activeRequests.size > 0) {
+        bleed.network.push({
+          pendingRequests: activeRequests.size,
+          timestamp: new Date().toISOString(),
+        });
+      }
+      // Restore original implementations
+      window.XMLHttpRequest = originalXHR;
+      window.fetch = originalFetch;
+    });
+  };
+
   beforeAll(async () => {
     // Wipe the tracking file so there is a clean slate and grab the options
     fs.writeFileSync(filePaths.testBleed, JSON.stringify(bleed, null, 4));
@@ -142,6 +204,7 @@ export const setup = (beforeAll, afterEach, afterAll) => {
     // Enable different trackers based on options
     if (options.domCheck) domCheck();
     if (options.globalWindowCheck) globalWindowCheck();
+    if (options.networkCheck) networkCheck();
   });
 
   afterEach(() => {
