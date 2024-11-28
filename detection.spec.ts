@@ -91,7 +91,6 @@ describe("detection", () => {
         },
         "./"
       );
-
       detectBleed({ logLevel: "none" });
       expect(consoleSpy).toHaveBeenCalledTimes(0);
     });
@@ -104,7 +103,6 @@ describe("detection", () => {
         },
         "./"
       );
-
       detectBleed({ logLevel: "none" });
       expect(consoleSpy).toHaveBeenCalledTimes(0);
     });
@@ -124,6 +122,7 @@ describe("detection", () => {
         `[BleedGuard]: See the temp output (./bleed-guard-test-bleed.json) for details or run with the 'verbose' reporter option enabled`
       );
     });
+
     it("logs when there is dom bleed", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
@@ -163,6 +162,29 @@ describe("detection", () => {
       expect(consoleSpy).toHaveBeenNthCalledWith(
         1,
         `[BleedGuard]: Window bleed detected!`
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        2,
+        `[BleedGuard]: See the temp output (./bleed-guard-test-bleed.json) for details or run with the 'verbose' reporter option enabled`
+      );
+    });
+
+    it("logs when there is network bleed", () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+      vol.fromJSON({
+        [filePaths.testBleed]: JSON.stringify(
+          { network: testBleedResults.network },
+          null,
+          4
+        ),
+      });
+      detectBleed({ logLevel: "info" });
+      expect(consoleSpy).toHaveBeenCalledTimes(2);
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        1,
+        `[BleedGuard]: Network requests still pending!`
       );
       expect(consoleSpy).toHaveBeenNthCalledWith(
         2,
@@ -211,6 +233,26 @@ describe("detection", () => {
       );
       expect(consoleSpy).toHaveBeenNthCalledWith(2, testBleedResults.window);
     });
+
+    it("logs when there is network bleed", () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+      vol.fromJSON({
+        [filePaths.testBleed]: JSON.stringify(
+          { network: testBleedResults.network },
+          null,
+          4
+        ),
+      });
+      detectBleed({ logLevel: "verbose" });
+      expect(consoleSpy).toHaveBeenCalledTimes(2);
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        1,
+        `[BleedGuard]: Network requests still pending!`
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(2, testBleedResults.network);
+    });
   });
 
   describe("throws when shouldThrow is true", () => {
@@ -229,6 +271,7 @@ describe("detection", () => {
         detectBleed({ logLevel: "info", shouldThrow: true })
       ).toThrow("[BleedGuard]: Test bleed detected!!! See output for details.");
     });
+
     it("and there is window bleed", () => {
       const consoleSpy = jest
         .spyOn(console, "log")
@@ -236,6 +279,22 @@ describe("detection", () => {
       vol.fromJSON({
         [filePaths.testBleed]: JSON.stringify(
           { window: testBleedResults.window },
+          null,
+          4
+        ),
+      });
+      expect(() =>
+        detectBleed({ logLevel: "info", shouldThrow: true })
+      ).toThrow("[BleedGuard]: Test bleed detected!!! See output for details.");
+    });
+
+    it("and there is network bleed", () => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+      vol.fromJSON({
+        [filePaths.testBleed]: JSON.stringify(
+          { network: testBleedResults.network },
           null,
           4
         ),
@@ -279,6 +338,15 @@ const testBleedResults = {
         "207": "dispatchEvent",
       },
       newKeys: ["button"],
+    },
+  ],
+  network: [
+    {
+      method: "GET",
+      url: "https://api.example.com/data",
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
   ],
 };
