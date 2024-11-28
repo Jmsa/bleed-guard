@@ -151,6 +151,8 @@ export const setup = (beforeAll, afterEach, afterAll) => {
   };
 
   // Track any open XMLHttpRequests or fetch requests
+  // These are the two most common ways that network requests are made in JS and should
+  // cover most cases. Node libraries may opt to use http however which would not be detected.
   const networkCheck = () => {
     const originalXHR = window.XMLHttpRequest;
     const originalFetch = window.fetch;
@@ -179,8 +181,6 @@ export const setup = (beforeAll, afterEach, afterAll) => {
       });
       return promise;
     } as any;
-
-    // TODO: sanity check the way packages like axios work
 
     cleanUp.push(() => {
       if (activeRequests.size > 0) {
