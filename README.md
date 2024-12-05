@@ -19,7 +19,7 @@
   Each reporter can track and report the following issues:
   - **DOM Cleanup**: Detects if any DOM elements were left behind after tests run.
   - **Global State Changes**: Ensures no changes persist in the global `window` object that might bleed into subsequent tests.
-  - **(WIP) Incomplete Network Requests**: Identifies if there are any ongoing or incomplete network requests when a test completes.
+  - **Incomplete Network Requests**: Identifies if there are any ongoing or incomplete network requests when a test completes.
 
 ## Installation
 
@@ -91,6 +91,7 @@ Each reporter is a wrapper around more generic detection options you can customi
 interface DetectionOptions {
   domCheck?: boolean;
   globalWindowCheck?: boolean;
+  networkCheck?: boolean;
   shouldThrow?: boolean;
   logLevel?: LogLevel;  // "none" | "info" | "verbose"
   library?: "Jest" | "Vitest";
@@ -101,6 +102,7 @@ interface DetectionOptions {
 | --- | --- | --- |
 | domCheck | true | Enables or disables tracking of leftover DOM elements |
 | globalWindowCheck | true | Monitors changes in the global window object |
+| networkCheck | true | Tracks incomplete network requests between tests |
 | shouldThrow | false | Will throw an error if any bleed is detected. |
 | logLevel | "info" | Determines how much output will be logged to the console from the reporter. |
 | Library | "" | Used to include the reporter name while logging. |
