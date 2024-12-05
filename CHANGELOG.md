@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/Jmsa/bleed-guard/compare/v1.1.0...v1.2.0) (2024-12-05)
+
+
+### Features
+
+* add basic network request tracking ([4ae6474](https://github.com/Jmsa/bleed-guard/commit/4ae647457279bef2287fd9eea36a6607eadfbec4))
+
 ## [1.1.0](https://github.com/Jmsa/bleed-guard/compare/v1.0.0...v1.1.0) (2024-10-03)
 
 
