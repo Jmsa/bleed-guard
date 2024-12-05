@@ -1,6 +1,6 @@
 {
   "name": "bleed-guard",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A collection of test reporters dedicated ot helping track, and stop, test bleed.",
   "repository": "https://github.com/Jmsa/bleed-guard.git",
   "author": "James Abercrombie <jmsabercrombie88@gmail.com>",
