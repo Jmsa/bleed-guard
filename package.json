@@ -41,7 +41,8 @@
     "standard-version": "9.5.0",
     "ts-jest": "29.2.5",
     "typescript": "5.6.2",
-    "vitest": "2.1.9"
+    "vite": "^8.2.2",
+    "vitest": "5.0.0"
   },
   "dependencies": {
     "chalk": "4.1.2",
