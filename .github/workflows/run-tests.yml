@@ -19,12 +19,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
       - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ env.CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
